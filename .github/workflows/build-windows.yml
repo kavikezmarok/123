@@ -25,38 +25,45 @@ jobs:
       - name: Build
         run: dotnet build LetenkyMonitor/LetenkyMonitor.csproj -c Release -r win-x64 --no-restore
 
-      - name: Install Playwright Chromium
+      - name: Locate Playwright script
+        id: playwright
         shell: pwsh
         run: |
-          $env:PLAYWRIGHT_BROWSERS_PATH="$pwd\pw-browsers"
-
-          $script = Get-ChildItem `
-            -Path "LetenkyMonitor\bin\Release" `
-            -Filter "playwright.ps1" `
-            -Recurse |
-            Select-Object -First 1
-
+          $script = Get-ChildItem -Path "LetenkyMonitor\bin\Release" -Filter "playwright.ps1" -Recurse | Select-Object -First 1
           if (-not $script) {
             Write-Error "playwright.ps1 sa po builde nenašiel."
             Get-ChildItem -Path "LetenkyMonitor\bin\Release" -Recurse
             exit 1
           }
+          "script=$($script.FullName)" >> $env:GITHUB_OUTPUT
+          Write-Host "Playwright script: $($script.FullName)"
 
-          Write-Host "Používam Playwright skript: $($script.FullName)"
-          & $script.FullName install chromium
+      - name: Install Playwright Chromium
+        shell: pwsh
+        run: |
+          $env:PLAYWRIGHT_BROWSERS_PATH="$pwd\pw-browsers"
+          & "${{ steps.playwright.outputs.script }}" install chromium
 
-      - name: Publish Windows x64
+      - name: Publish Windows x64 folder
         shell: pwsh
         run: |
           dotnet publish LetenkyMonitor/LetenkyMonitor.csproj `
             -c Release `
             -r win-x64 `
             --self-contained true `
-            -p:PublishSingleFile=true `
+            -p:PublishSingleFile=false `
             --no-restore `
             -o publish
 
           Copy-Item -Recurse -Force pw-browsers publish\pw-browsers
+
+          $driverDir = Get-ChildItem -Path "LetenkyMonitor\bin\Release" -Directory -Filter ".playwright" -Recurse | Select-Object -First 1
+          if ($driverDir) {
+            Copy-Item -Recurse -Force $driverDir.FullName publish\.playwright
+            Write-Host "Copied Playwright driver from $($driverDir.FullName)"
+          }
+
+          Get-ChildItem publish -Recurse | Select-Object FullName
 
       - name: Upload application
         uses: actions/upload-artifact@v4
