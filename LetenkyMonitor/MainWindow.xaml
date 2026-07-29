@@ -1,0 +1,70 @@
+<Window x:Class="LetenkyMonitor.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Letenky Monitor"
+        Width="1120"
+        Height="650"
+        WindowStartupLocation="CenterScreen">
+    <DockPanel>
+        <Border DockPanel.Dock="Top"
+                Background="#20242A"
+                Padding="12">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="✈ Letenky Monitor"
+                           Foreground="White"
+                           FontSize="22"
+                           FontWeight="SemiBold"
+                           VerticalAlignment="Center"
+                           Margin="0,0,18,0"/>
+
+                <Button Content="Pridať let" Click="Add_Click"/>
+                <Button Content="Upraviť" Click="Edit_Click"/>
+                <Button Content="Odstrániť" Click="Delete_Click"/>
+                <Button Content="Zapnúť / vypnúť" Click="Toggle_Click"/>
+                <Button Content="Nastavenia" Click="Settings_Click"/>
+                <Button Content="Spustiť kontrolu" Click="Run_Click"/>
+            </StackPanel>
+        </Border>
+
+        <StatusBar DockPanel.Dock="Bottom">
+            <TextBlock x:Name="StatusText" Text="Pripravené"/>
+        </StatusBar>
+
+        <DataGrid x:Name="FlightsGrid"
+                  AutoGenerateColumns="False"
+                  IsReadOnly="True"
+                  SelectionMode="Single"
+                  CanUserAddRows="False"
+                  Margin="10">
+            <DataGrid.Columns>
+                <DataGridCheckBoxColumn Header="Aktívny"
+                                        Binding="{Binding Enabled}"
+                                        Width="70"/>
+                <DataGridTextColumn Header="Názov"
+                                    Binding="{Binding Name}"
+                                    Width="*"/>
+                <DataGridTextColumn Header="Odkiaľ"
+                                    Binding="{Binding Origin}"
+                                    Width="85"/>
+                <DataGridTextColumn Header="Kam"
+                                    Binding="{Binding Destination}"
+                                    Width="85"/>
+                <DataGridTextColumn Header="Odlet"
+                                    Binding="{Binding DepartureDate}"
+                                    Width="110"/>
+                <DataGridTextColumn Header="Návrat"
+                                    Binding="{Binding ReturnDate}"
+                                    Width="110"/>
+                <DataGridTextColumn Header="Aerolinka"
+                                    Binding="{Binding PreferredAirline}"
+                                    Width="145"/>
+                <DataGridTextColumn Header="Osoby"
+                                    Binding="{Binding Adults}"
+                                    Width="65"/>
+                <DataGridTextColumn Header="± dní"
+                                    Binding="{Binding ToleranceDays}"
+                                    Width="60"/>
+            </DataGrid.Columns>
+        </DataGrid>
+    </DockPanel>
+</Window>
