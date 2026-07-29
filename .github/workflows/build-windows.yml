@@ -1,0 +1,52 @@
+name: Build Windows EXE
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Restore
+        run: dotnet restore LetenkyMonitor.sln
+
+      - name: Build
+        run: dotnet build LetenkyMonitor/LetenkyMonitor.csproj -c Release --no-restore
+
+      - name: Install Playwright Chromium
+        shell: pwsh
+        run: |
+          $env:PLAYWRIGHT_BROWSERS_PATH="$pwd\pw-browsers"
+          pwsh LetenkyMonitor/bin/Release/net8.0-windows/playwright.ps1 install chromium
+
+      - name: Publish Windows x64
+        shell: pwsh
+        run: |
+          dotnet publish LetenkyMonitor/LetenkyMonitor.csproj `
+            -c Release `
+            -r win-x64 `
+            --self-contained true `
+            -p:PublishSingleFile=true `
+            --no-restore `
+            -o publish
+
+          Copy-Item -Recurse -Force pw-browsers publish\pw-browsers
+
+      - name: Upload application
+        uses: actions/upload-artifact@v4
+        with:
+          name: LetenkyMonitor-Windows
+          path: publish
+          if-no-files-found: error
